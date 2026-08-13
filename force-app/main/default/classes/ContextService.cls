@@ -111,6 +111,17 @@ public class ContextService {
         System.debug('\n Reference ID from update context attribute: '+output.get('referenceId'));
     }
 
+    public Object getAttributeValue(String tagName) {
+        if(String.isBlank(this.contextId)) {
+            throw new IllegalArgumentException('Context Id is not set. Please call getContext() first.');
+        }
+        List<Object> tagResult = (List<Object>)queryResult.get(tagName);
+        Map<String,Object> contextTagDataRepresentation = (Map<String,Object>)tagResult.get(0);
+        String tagValue = (String) contextTagDataRepresentation.get('tagValue');
+
+        return tagValue;
+    }
+
     public void commitContext() {
         if(String.isBlank(this.contextId)) {
             throw new IllegalArgumentException('Context Id is not set. Please call getContext() first.');

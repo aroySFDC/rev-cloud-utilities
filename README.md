@@ -6,3 +6,9 @@ ContextService contextService = new ContextService('RLM_SalesTransactionContext'
 contextService = contextService.queryTags(new List<String>{'ShippingCity'});
 contextService.setAttributeValue('ShippingCity', 'San Francisco');
 contextService.commitContext();
+
+## Get Attribute value
+```
+contextService = contextService.queryTags(new List<String>{'Status', 'ShippingCity'});
+System.debug('\n Attrbute value for Status '+contextService.getAttributeValue('Status'));
+```
