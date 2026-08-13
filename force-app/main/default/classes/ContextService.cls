@@ -118,7 +118,6 @@ public class ContextService {
         input.put('contextId', this.contextId);
         input.put('targetMappingId', this.targetMappingId);
         Map<String, Object> output = industriesCtx.persistContext(input);
-        System.debug(output.get('referenceId'));
     }
 
     private List<Map<String, Object>> getAttributeMap(String tagName, String tagValue) {
