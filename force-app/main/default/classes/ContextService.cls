@@ -6,6 +6,7 @@ public class ContextService {
     private String contextId;
     private String contextDefinitionName;
     private String mappingName;
+    private String targetMappingId;
     private Context.IndustriesContext industriesCtx;
     private static final String LOG_PREFIX = 'Apex ContextService: ';
     public Map<String, Object> contextResult = new Map<String, Object>();
@@ -51,6 +52,7 @@ public class ContextService {
             };
             this.contextResult = industriesCtx.buildContext(contextInputs);
             this.contextId = (String)contextResult.get('contextId');
+            this.targetMappingId = (String)contextResult.get('contextMappingId');
         } catch (Exception e) {
             System.debug(LOG_PREFIX + 'Error in getContext: ' + e.getMessage());
             throw e;
@@ -106,6 +108,17 @@ public class ContextService {
         };
         System.debug('\n Input payload for updater context attribute '+JSON.serialize(input));
         industriesCtx.updateContextAttributes(input);
+    }
+
+    public void commitContext() {
+        if(String.isBlank(this.contextId)) {
+            throw new IllegalArgumentException('Context Id is not set. Please call getContext() first.');
+        }
+        Map<String, Object> input = new Map<String, Object>();
+        input.put('contextId', this.contextId);
+        input.put('targetMappingId', this.targetMappingId);
+        Map<String, Object> output = industriesCtx.persistContext(input);
+        System.debug(output.get('referenceId'));
     }
 
     private List<Map<String, Object>> getAttributeMap(String tagName, String tagValue) {
