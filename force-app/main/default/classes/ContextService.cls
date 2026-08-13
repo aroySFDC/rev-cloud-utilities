@@ -83,7 +83,7 @@ public class ContextService {
     }
 
     // TO DO: Implement updateContextAttributes method to update context attributes based on the provided dataPath and attributeMap.
-    public void updateContextAttribute(String tagName, String tagValue) {
+    public void setAttributeValue(String tagName, String tagValue) {
         if(String.isBlank(this.contextId)) {
             throw new IllegalArgumentException('Context Id is not set. Please call getContext() first.');
         }
