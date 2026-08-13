@@ -23,7 +23,7 @@ public class ContextService {
         this.contextDefinitionName = contextDefinitionName;
     }
 
-    /*
+    
     public ContextService getContext(String objectName, String recordId) {
         if (!recordData.containsKey(objectName)) {
             recordData.put(objectName, new List<Map<String, String>>());
