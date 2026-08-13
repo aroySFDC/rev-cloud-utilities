@@ -10,6 +10,12 @@ public class ContextService {
     private static final String LOG_PREFIX = 'Apex ContextService: ';
     public Map<String, Object> contextResult = new Map<String, Object>();
     private Map<String, List<Map<String, String>>> recordData = new Map<String, List<Map<String, String>>>();
+    private Map<String, Object> queryResult;
+
+    public ContextService(String contextId) {
+        this.contextId = contextId;
+        this.industriesCtx = new Context.IndustriesContext();
+    }
 
     public ContextService(String contextDefinitionName, String mappingName) {
         this.industriesCtx = new Context.IndustriesContext();
@@ -59,17 +65,57 @@ public class ContextService {
     }
 
     /** Query tags for the current context. */
-    public Map<String, Object> queryTags(List<String> tagNames) {
+    public ContextService queryTags(List<String> tagNames) {
         if(String.isBlank(this.contextId)) {
             throw new IllegalArgumentException('Context Id is not set. Please call getContext() first.');
         }
 
+        if(tagNames.isEmpty()) {
+            throw new IllegalArgumentException('Tag names list is empty. Please provide at least one tag name to query.');
+        }
+        this.queryResult = new Map<String, Object>();
         Map<String, Object> input = new Map<String, Object>{
             'contextId' => this.contextId,
-            'tags' => (tagNames == null) ? new List<String>() : tagNames
+            'tags' => tagNames
         };
-        Map<String, Object> output = (Map<String, Object>)industriesCtx.queryTags(input)?.get('queryResult');
-        return output;
+        this.queryResult = (Map<String, Object>)industriesCtx.queryTags(input)?.get('queryResult');
+        return this;
+    }
+
+    // TO DO: Implement updateContextAttributes method to update context attributes based on the provided dataPath and attributeMap.
+    public void updateContextAttribute(String tagName, String tagValue) {
+        if(String.isBlank(this.contextId)) {
+            throw new IllegalArgumentException('Context Id is not set. Please call getContext() first.');
+        }
+
+        if(this.queryResult == null || this.queryResult.isEmpty()) {
+            throw new IllegalArgumentException('Query result is empty. Please call queryTags() first to populate the query result.');
+        }
+        List<Object> tagResult = (List<Object>)queryResult.get(tagName);
+        Map<String,Object> contextTagDataRepresentation = (Map<String,Object>)tagResult.get(0);
+        List<String> dataPath = (List<String>)contextTagDataRepresentation.get('dataPath');
+
+        Map<String, Object> nodePathInputRepresentation = new Map<String, Object> {
+            'nodePath' => new Map<String, Object> {'dataPath' => dataPath},
+            'attributes' => getAttributeMap(tagName, tagValue)
+        };
+        
+        Map<String, Object> input = new Map<String, Object>{
+            'contextId' => this.contextId,
+            'nodePathAndAttributes' => new List<Map<String, Object>>{nodePathInputRepresentation}
+        };
+        System.debug('\n Input payload for updater context attribute '+JSON.serialize(input));
+        industriesCtx.updateContextAttributes(input);
+    }
+
+    private List<Map<String, Object>> getAttributeMap(String tagName, String tagValue) {
+        List<Map<String, Object>> attributeList = new List<Map<String, Object>>();
+        Map<String, Object> attributeMap = new Map<String, Object>{
+            'attributeName' => tagName,
+            'attributeValue' => tagValue
+        };
+        attributeList.add(attributeMap);
+        return attributeList;
     }
 
 }
