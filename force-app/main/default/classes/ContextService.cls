@@ -8,7 +8,7 @@ public class ContextService {
     private String mappingName;
     private Context.IndustriesContext industriesCtx;
     private static final String LOG_PREFIX = 'Apex ContextService: ';
-    protected Map<String, Object> contextResult = new Map<String, Object>();
+    public Map<String, Object> contextResult = new Map<String, Object>();
     private Map<String, List<Map<String, String>>> recordData = new Map<String, List<Map<String, String>>>();
 
     public ContextService(String contextDefinitionName, String mappingName) {
@@ -23,27 +23,39 @@ public class ContextService {
         this.contextDefinitionName = contextDefinitionName;
     }
 
-    /*
+    /** Get the ContextId for the given object and record Id. */
     public ContextService getContext(String objectName, String recordId) {
-        if (!recordData.containsKey(objectName)) {
+        System.debug(LOG_PREFIX + 'Getting context for object: ' + objectName + ', recordId: ' + recordId);
+        try {
+            if (!recordData.containsKey(objectName)) {
             recordData.put(objectName, new List<Map<String, String>>());
-        }
-        recordData.get(objectName).add(new Map<String, String>{
-            'id' => recordId,
-            'businessObjectType' => objectName
-        });
-        Map<String, String> metadata = new Map<String, String>{
-            'contextDefinitionName' => this.contextDefinitionName,
-            'mappingName' => this.mappingName
-        };
+            }
+            recordData.get(objectName).add(new Map<String, String>{
+                'id' => recordId,
+                'businessObjectType' => objectName
+            });
+            Map<String, String> metadata = new Map<String, String>{
+                'contextDefinitionName' => this.contextDefinitionName,
+                'mappingName' => this.mappingName
+            };
 
-        Map<String, Object> contextInputs = new Map<String, Object>{
-            'metadata' => metadata,
-            'data' => JSON.serialize(recordData)
-        };
-        this.contextResult = industriesCtx.buildContext(contextInputs);
-        this.contextId = (String)contextResult.get('contextId');
+            Map<String, Object> contextInputs = new Map<String, Object>{
+                'metadata' => metadata,
+                'data' => JSON.serialize(recordData)
+            };
+            this.contextResult = industriesCtx.buildContext(contextInputs);
+            this.contextId = (String)contextResult.get('contextId');
+        } catch (Exception e) {
+            System.debug(LOG_PREFIX + 'Error in getContext: ' + e.getMessage());
+            throw e;
+        }
         return this;
+    }
+
+    /** Get the cached ContextId. */
+    public string getContextId(){
+        if(this.contextResult.isEmpty()) throw new IllegalArgumentException('Call getContext() function to cache the result first before getting the context Id');
+        return this.contextId;
     }
 
     /** Query tags for the current context. */
